@@ -1,8 +1,6 @@
-import { request } from './client'
+import { api } from './client'
 
-export function login(email, password) {
-  return request('/auth/login', {
-    method: 'POST',
-    body: JSON.stringify({ email, password }),
-  })
+export async function login(email, password) {
+  const response = await api.post('/auth/login', { email, password })
+  return response.data
 }

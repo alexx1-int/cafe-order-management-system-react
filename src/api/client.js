@@ -1,44 +1,38 @@
+import axios from 'axios'
 import { clearSession, getSession } from './session'
 
-export async function request(path, options = {}) {
+export const api = axios.create({
+  baseURL: '/api',
+})
+
+api.interceptors.request.use((config) => {
   const session = getSession()
+  if (session) {
+    config.headers.Authorization = `Bearer ${session.token}`
+  }
+  return config
+})
 
-  const response = await fetch(`/api${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(session && { Authorization: `Bearer ${session.token}` }),
-      ...options.headers,
-    },
-  })
-
-  if (!response.ok) {
-    if (response.status === 401 && session) {
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && getSession()) {
       clearSession()
       window.location.reload()
     }
-    throw new Error(await readError(response))
-  }
+    return Promise.reject(new Error(readError(error)))
+  },
+)
 
-  if (response.status === 204) {
-    return null
+function readError(error) {
+  const body = error.response?.data
+  if (body?.error) {
+    return body.error
   }
-  return response.json()
-}
-
-async function readError(response) {
-  const text = await response.text()
-  try {
-    const body = JSON.parse(text)
-    if (body.error) {
-      return body.error
-    }
-    if (body.errors) {
-      return Object.entries(body.errors)
-        .map(([field, message]) => `${field}: ${message}`)
-        .join(', ')
-    }
-  } catch {
+  if (body?.errors) {
+    return Object.entries(body.errors)
+      .map(([field, message]) => `${field}: ${message}`)
+      .join(', ')
   }
-  return text || `HTTP ${response.status}`
+  return error.message
 }

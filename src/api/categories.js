@@ -1,5 +1,6 @@
-import { request } from './client'
+import { api } from './client'
 
-export function getCategories(page = 0, size = 20) {
-  return request(`/categories?page=${page}&size=${size}`)
+export async function getCategories(page = 0, size = 20) {
+  const response = await api.get('/categories', { params: { page, size } })
+  return response.data
 }

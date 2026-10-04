@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react'
 import { getCategories } from '../api/categories'
 
-function CategoryTable() {
+function CategoriesPage() {
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-
-  // Пустой массив зависимостей — эффект выполнится один раз после первой отрисовки
   useEffect(() => {
     getCategories()
       .then((data) => setCategories(data.content))
@@ -60,4 +58,4 @@ function CategoryTable() {
   )
 }
 
-export default CategoryTable
+export default CategoriesPage

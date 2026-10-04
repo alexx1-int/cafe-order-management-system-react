@@ -1,7 +1,12 @@
 import { useState } from 'react'
+import { Navigate, Route, Routes } from 'react-router'
 import { clearSession, getSession, saveSession } from './api/session'
-import CategoryTable from './components/CategoryTable'
-import LoginForm from './components/LoginForm'
+import Layout from './components/Layout'
+import PrivateRoute from './components/PrivateRoute'
+import CategoriesPage from './pages/CategoriesPage'
+import LoginPage from './pages/LoginPage'
+import MenuPage from './pages/MenuPage'
+import NotFoundPage from './pages/NotFoundPage'
 import './App.css'
 
 function App() {
@@ -19,17 +24,25 @@ function App() {
 
   return (
     <main className="container">
-      <header className="header">
-        <h1>Cafe Order Management</h1>
-        {user && (
-          <div className="user">
-            <span>{user.name} ({user.role})</span>
-            <button type="button" onClick={handleLogout}>Выйти</button>
-          </div>
-        )}
-      </header>
+      <h1>Cafe Order Management</h1>
 
-      {user ? <CategoryTable /> : <LoginForm onLogin={handleLogin} />}
+      <Routes>
+        <Route path="/login" element={<LoginPage user={user} onLogin={handleLogin} />} />
+
+        <Route
+          element={
+            <PrivateRoute user={user}>
+              <Layout user={user} onLogout={handleLogout} />
+            </PrivateRoute>
+          }
+        >
+          <Route index element={<Navigate to="/categories" replace />} />
+          <Route path="/categories" element={<CategoriesPage />} />
+          <Route path="/menu" element={<MenuPage />} />
+        </Route>
+
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
     </main>
   )
 }

@@ -1,11 +1,19 @@
 import { useState } from 'react'
+import { Navigate, useLocation } from 'react-router'
 import { login } from '../api/auth'
 
-function LoginForm({ onLogin }) {
+function LoginPage({ user, onLogin }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+
+  const location = useLocation()
+  const from = location.state?.from?.pathname || '/'
+
+  if (user) {
+    return <Navigate to={from} replace />
+  }
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -16,7 +24,6 @@ function LoginForm({ onLogin }) {
       onLogin(session)
     } catch (err) {
       setError(err.message)
-    } finally {
       setSubmitting(false)
     }
   }
@@ -54,4 +61,4 @@ function LoginForm({ onLogin }) {
   )
 }
 
-export default LoginForm
+export default LoginPage

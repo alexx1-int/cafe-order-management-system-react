@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { createCategory, getCategories } from '../api/categories'
+import { createCategory, getCategories, updateCategory } from '../api/categories'
 import CategoryForm from '../components/CategoryForm'
 import Modal from '../components/Modal'
 
@@ -8,6 +8,7 @@ function CategoriesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isCreating, setIsCreating] = useState(false)
+  const [editingCategory, setEditingCategory] = useState(null)
 
   useEffect(() => {
     getCategories()
@@ -20,6 +21,12 @@ function CategoriesPage() {
     const created = await createCategory(category)
     setCategories((prev) => [...prev, created])
     setIsCreating(false)
+  }
+
+  async function handleUpdate(category) {
+    const updated = await updateCategory(editingCategory.id, category)
+    setCategories((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
+    setEditingCategory(null)
   }
 
   if (loading) {
@@ -57,7 +64,9 @@ function CategoriesPage() {
               <td>{category.name}</td>
               <td>{category.description}</td>
               <td className="actions">
-                <button type="button">Изменить</button>
+                <button type="button" onClick={() => setEditingCategory(category)}>
+                  Изменить
+                </button>
                 <button type="button" className="danger">Удалить</button>
               </td>
             </tr>
@@ -70,6 +79,16 @@ function CategoriesPage() {
           <CategoryForm
             onSubmit={handleCreate}
             onCancel={() => setIsCreating(false)}
+          />
+        </Modal>
+      )}
+
+      {editingCategory && (
+        <Modal title="Редактирование категории" onClose={() => setEditingCategory(null)}>
+          <CategoryForm
+            initialValues={editingCategory}
+            onSubmit={handleUpdate}
+            onCancel={() => setEditingCategory(null)}
           />
         </Modal>
       )}

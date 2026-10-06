@@ -1,16 +1,26 @@
 import { useEffect, useState } from 'react'
-import { getCategories } from '../api/categories'
+import { createCategory, getCategories } from '../api/categories'
+import CategoryForm from '../components/CategoryForm'
+import Modal from '../components/Modal'
 
 function CategoriesPage() {
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [isCreating, setIsCreating] = useState(false)
+
   useEffect(() => {
     getCategories()
       .then((data) => setCategories(data.content))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false))
   }, [])
+
+  async function handleCreate(category) {
+    const created = await createCategory(category)
+    setCategories((prev) => [...prev, created])
+    setIsCreating(false)
+  }
 
   if (loading) {
     return <p>Загрузка...</p>
@@ -23,7 +33,7 @@ function CategoriesPage() {
     <section>
       <div className="toolbar">
         <h2>Категории</h2>
-        <button type="button">Добавить</button>
+        <button type="button" onClick={() => setIsCreating(true)}>Добавить</button>
       </div>
 
       <table className="table">
@@ -54,6 +64,15 @@ function CategoriesPage() {
           ))}
         </tbody>
       </table>
+
+      {isCreating && (
+        <Modal title="Новая категория" onClose={() => setIsCreating(false)}>
+          <CategoryForm
+            onSubmit={handleCreate}
+            onCancel={() => setIsCreating(false)}
+          />
+        </Modal>
+      )}
     </section>
   )
 }

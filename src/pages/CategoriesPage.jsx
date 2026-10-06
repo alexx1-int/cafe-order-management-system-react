@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react'
-import { createCategory, getCategories, updateCategory } from '../api/categories'
+import {
+  createCategory,
+  deleteCategory,
+  getCategories,
+  updateCategory,
+} from '../api/categories'
 import CategoryForm from '../components/CategoryForm'
+import ConfirmDialog from '../components/ConfirmDialog'
 import Modal from '../components/Modal'
 
 function CategoriesPage() {
@@ -9,6 +15,7 @@ function CategoriesPage() {
   const [error, setError] = useState(null)
   const [isCreating, setIsCreating] = useState(false)
   const [editingCategory, setEditingCategory] = useState(null)
+  const [deletingCategory, setDeletingCategory] = useState(null)
 
   useEffect(() => {
     getCategories()
@@ -27,6 +34,12 @@ function CategoriesPage() {
     const updated = await updateCategory(editingCategory.id, category)
     setCategories((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
     setEditingCategory(null)
+  }
+
+  async function handleDelete() {
+    await deleteCategory(deletingCategory.id)
+    setCategories((prev) => prev.filter((c) => c.id !== deletingCategory.id))
+    setDeletingCategory(null)
   }
 
   if (loading) {
@@ -67,7 +80,13 @@ function CategoriesPage() {
                 <button type="button" onClick={() => setEditingCategory(category)}>
                   Изменить
                 </button>
-                <button type="button" className="danger">Удалить</button>
+                <button
+                  type="button"
+                  className="danger"
+                  onClick={() => setDeletingCategory(category)}
+                >
+                  Удалить
+                </button>
               </td>
             </tr>
           ))}
@@ -91,6 +110,15 @@ function CategoriesPage() {
             onCancel={() => setEditingCategory(null)}
           />
         </Modal>
+      )}
+
+      {deletingCategory && (
+        <ConfirmDialog
+          title="Удаление категории"
+          message={`Удалить категорию «${deletingCategory.name}»?`}
+          onConfirm={handleDelete}
+          onCancel={() => setDeletingCategory(null)}
+        />
       )}
     </section>
   )

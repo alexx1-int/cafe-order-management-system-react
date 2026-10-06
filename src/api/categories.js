@@ -14,3 +14,7 @@ export async function updateCategory(id, category) {
   const response = await api.put(`/categories/${id}`, category)
   return response.data
 }
+
+export async function deleteCategory(id) {
+  await api.delete(`/categories/${id}`)
+}

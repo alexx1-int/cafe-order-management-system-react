@@ -1,51 +1,46 @@
 import { useEffect, useState } from 'react'
-import {
-  createCategory,
-  deleteCategory,
-  getCategories,
-  updateCategory,
-} from '../api/categories'
+import { useDispatch, useSelector } from 'react-redux'
 import CategoryForm from '../components/CategoryForm'
 import ConfirmDialog from '../components/ConfirmDialog'
 import Modal from '../components/Modal'
+import {
+  createCategory,
+  deleteCategory,
+  fetchCategories,
+  updateCategory,
+} from '../store/categoriesSlice'
 
 function CategoriesPage() {
-  const [categories, setCategories] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const { items: categories, status, error } = useSelector((state) => state.categories)
+  const dispatch = useDispatch()
+
   const [isCreating, setIsCreating] = useState(false)
   const [editingCategory, setEditingCategory] = useState(null)
   const [deletingCategory, setDeletingCategory] = useState(null)
 
   useEffect(() => {
-    getCategories()
-      .then((data) => setCategories(data.content))
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false))
-  }, [])
+    dispatch(fetchCategories())
+  }, [dispatch])
 
   async function handleCreate(category) {
-    const created = await createCategory(category)
-    setCategories((prev) => [...prev, created])
+    await dispatch(createCategory(category)).unwrap()
     setIsCreating(false)
   }
 
   async function handleUpdate(category) {
-    const updated = await updateCategory(editingCategory.id, category)
-    setCategories((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
+    await dispatch(updateCategory({ id: editingCategory.id, category })).unwrap()
     setEditingCategory(null)
   }
 
   async function handleDelete() {
-    await deleteCategory(deletingCategory.id)
-    setCategories((prev) => prev.filter((c) => c.id !== deletingCategory.id))
+    await dispatch(deleteCategory(deletingCategory.id)).unwrap()
     setDeletingCategory(null)
   }
 
-  if (loading) {
+  if (status === 'idle' || status === 'loading') {
     return <p>Загрузка...</p>
   }
-  if (error) {
+  if (status === 'failed') {
     return <p className="error">Ошибка: {error}</p>
   }
 

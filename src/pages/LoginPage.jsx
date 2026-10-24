@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Navigate, useLocation } from 'react-router'
+import Spinner from '../components/Spinner'
 import { login } from '../store/authSlice'
 
 function LoginPage() {
@@ -50,7 +51,7 @@ function LoginPage() {
       {error && <p className="error">{error}</p>}
 
       <button type="submit" disabled={submitting}>
-        {submitting ? 'Входим...' : 'Войти'}
+        {submitting ? <Spinner label="Входим..." small /> : 'Войти'}
       </button>
     </form>
   )

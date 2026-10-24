@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import CategoryForm from '../components/CategoryForm'
 import ConfirmDialog from '../components/ConfirmDialog'
 import Modal from '../components/Modal'
+import Spinner from '../components/Spinner'
 import {
   createCategory,
   deleteCategory,
@@ -38,7 +39,11 @@ function CategoriesPage() {
   }
 
   if (status === 'idle' || status === 'loading') {
-    return <p>Загрузка...</p>
+    return (
+      <div className="page-loader">
+        <Spinner label="Загружаем категории..." />
+      </div>
+    )
   }
   if (status === 'failed') {
     return <p className="error">Ошибка: {error}</p>

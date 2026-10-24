@@ -1,5 +1,8 @@
+import { useSelector } from 'react-redux'
 import { Navigate, useLocation } from 'react-router'
-function PrivateRoute({ user, children }) {
+
+function PrivateRoute({ children }) {
+  const user = useSelector((state) => state.auth.user)
   const location = useLocation()
 
   if (!user) {

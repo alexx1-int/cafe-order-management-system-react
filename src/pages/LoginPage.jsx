@@ -1,13 +1,14 @@
 import { useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { Navigate, useLocation } from 'react-router'
-import { login } from '../api/auth'
+import { login } from '../store/authSlice'
 
-function LoginPage({ user, onLogin }) {
+function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState(null)
-  const [submitting, setSubmitting] = useState(false)
 
+  const { user, status, error } = useSelector((state) => state.auth)
+  const dispatch = useDispatch()
   const location = useLocation()
   const from = location.state?.from?.pathname || '/'
 
@@ -15,18 +16,12 @@ function LoginPage({ user, onLogin }) {
     return <Navigate to={from} replace />
   }
 
-  async function handleSubmit(event) {
+  function handleSubmit(event) {
     event.preventDefault()
-    setError(null)
-    setSubmitting(true)
-    try {
-      const session = await login(email, password)
-      onLogin(session)
-    } catch (err) {
-      setError(err.message)
-      setSubmitting(false)
-    }
+    dispatch(login({ email, password }))
   }
+
+  const submitting = status === 'loading'
 
   return (
     <form className="form login-form" onSubmit={handleSubmit}>

@@ -8,11 +8,16 @@ import {
   createCategory,
   deleteCategory,
   fetchCategories,
+  selectCategoriesError,
+  selectCategoriesStatus,
+  selectSortedCategories,
   updateCategory,
 } from '../store/categoriesSlice'
 
 function CategoriesPage() {
-  const { items: categories, status, error } = useSelector((state) => state.categories)
+  const categories = useSelector(selectSortedCategories)
+  const status = useSelector(selectCategoriesStatus)
+  const error = useSelector(selectCategoriesError)
   const dispatch = useDispatch()
 
   const [isCreating, setIsCreating] = useState(false)

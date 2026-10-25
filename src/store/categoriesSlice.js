@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import { createAsyncThunk, createSelector, createSlice } from '@reduxjs/toolkit'
 import * as categoriesApi from '../api/categories'
 
 export const fetchCategories = createAsyncThunk(
@@ -66,3 +66,11 @@ const categoriesSlice = createSlice({
 })
 
 export default categoriesSlice.reducer
+
+export const selectCategories = (state) => state.categories.items
+export const selectCategoriesStatus = (state) => state.categories.status
+export const selectCategoriesError = (state) => state.categories.error
+
+export const selectSortedCategories = createSelector([selectCategories], (items) =>
+  [...items].sort((a, b) => a.name.localeCompare(b.name, 'ru')),
+)

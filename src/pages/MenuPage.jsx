@@ -1,24 +1,54 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Alert, Table, Tag } from 'antd'
+import { Alert, Button, Popconfirm, Space, Table, Tag } from 'antd'
+import MenuItemForm from '../components/MenuItemForm'
+import { fetchCategories, selectSortedCategories } from '../store/categoriesSlice'
 import {
+  createMenuItem,
+  deleteMenuItem,
   fetchMenuItems,
   selectMenuCategoryFilters,
   selectMenuError,
   selectMenuStatus,
   selectSortedMenuItems,
+  updateMenuItem,
 } from '../store/menuSlice'
 
 function MenuPage() {
   const dispatch = useDispatch()
   const items = useSelector(selectSortedMenuItems)
   const categoryFilters = useSelector(selectMenuCategoryFilters)
+  const categories = useSelector(selectSortedCategories)
   const status = useSelector(selectMenuStatus)
   const error = useSelector(selectMenuError)
 
+  const [isCreating, setIsCreating] = useState(false)
+  const [editingItem, setEditingItem] = useState(null)
+  const [deleteError, setDeleteError] = useState(null)
+
   useEffect(() => {
     dispatch(fetchMenuItems())
+    dispatch(fetchCategories())
   }, [dispatch])
+
+  async function handleCreate(item) {
+    await dispatch(createMenuItem(item)).unwrap()
+    setIsCreating(false)
+  }
+
+  async function handleUpdate(item) {
+    await dispatch(updateMenuItem({ id: editingItem.id, item })).unwrap()
+    setEditingItem(null)
+  }
+
+  async function handleDelete(id) {
+    setDeleteError(null)
+    try {
+      await dispatch(deleteMenuItem(id)).unwrap()
+    } catch (err) {
+      setDeleteError(err.message)
+    }
+  }
 
   const columns = [
     {
@@ -54,11 +84,49 @@ function MenuPage() {
       render: (available) =>
         available ? <Tag color="green">В наличии</Tag> : <Tag color="red">Нет в наличии</Tag>,
     },
+    {
+      title: 'Действия',
+      key: 'actions',
+      render: (_, item) => (
+        <Space>
+          <Button size="small" onClick={() => setEditingItem(item)}>
+            Изменить
+          </Button>
+          <Popconfirm
+            title={`Удалить «${item.name}»?`}
+            okText="Удалить"
+            cancelText="Отмена"
+            okButtonProps={{ danger: true }}
+            onConfirm={() => handleDelete(item.id)}
+          >
+            <Button size="small" danger>
+              Удалить
+            </Button>
+          </Popconfirm>
+        </Space>
+      ),
+    },
   ]
 
   return (
     <section>
-      <h2>Меню</h2>
+      <div className="toolbar">
+        <h2>Меню</h2>
+        <Button type="primary" onClick={() => setIsCreating(true)}>
+          Добавить блюдо
+        </Button>
+      </div>
+
+      {deleteError && (
+        <Alert
+          type="error"
+          title={deleteError}
+          closable
+          onClose={() => setDeleteError(null)}
+          style={{ marginBottom: 16 }}
+        />
+      )}
+
       {status === 'failed' ? (
         <Alert type="error" title="Не удалось загрузить меню" description={error} />
       ) : (
@@ -68,6 +136,25 @@ function MenuPage() {
           dataSource={items}
           loading={status === 'idle' || status === 'loading'}
           pagination={{ pageSize: 10 }}
+        />
+      )}
+
+      {isCreating && (
+        <MenuItemForm
+          title="Новое блюдо"
+          categories={categories}
+          onSubmit={handleCreate}
+          onCancel={() => setIsCreating(false)}
+        />
+      )}
+
+      {editingItem && (
+        <MenuItemForm
+          title="Изменить блюдо"
+          initialValues={editingItem}
+          categories={categories}
+          onSubmit={handleUpdate}
+          onCancel={() => setEditingItem(null)}
         />
       )}
     </section>

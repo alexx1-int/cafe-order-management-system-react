@@ -78,3 +78,9 @@ export const selectSortedMenuItems = createSelector([selectMenuItems], (items) =
       a.name.localeCompare(b.name, 'ru'),
   ),
 )
+
+export const selectMenuCategoryFilters = createSelector([selectMenuItems], (items) =>
+  [...new Set(items.map((item) => item.categoryName))]
+    .sort((a, b) => a.localeCompare(b, 'ru'))
+    .map((name) => ({ text: name, value: name })),
+)
